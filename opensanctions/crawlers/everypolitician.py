@@ -52,9 +52,6 @@ def scrape_csv(context, data):
     legislature = data.get("legislature")
     start_year = int(period.get('start_date')[:4])
     current_year = datetime.utcnow().year
-    # Don't import the US 2nd continental congress (TM):
-    if current_year - 10 > start_year:
-        return
     res = context.http.get(period.get('csv_url'))
     with open(res.file_path, 'r') as csvfile:
         for row in DictReader(csvfile):
