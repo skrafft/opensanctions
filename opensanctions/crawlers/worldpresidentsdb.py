@@ -7,9 +7,9 @@ from opensanctions.models import Entity
 
 def parse_entry(context, entry):
     url = entry.get('href')
-    res = context.http.get(url)
+    res = context.http.get('https://www.worldpresidentsdb.com/' + url)
     doc = res.html
-    content = doc.find('.//div[@id="content"]')
+    content = doc.find('.//main/div')
 
     uid = make_id(url)
 
@@ -20,7 +20,7 @@ def parse_entry(context, entry):
     entity.first_name, entity.last_name = content.find('h1').text.split(' ', 1)
 
     for element in content.findall('.//p'):
-        type = element.find('.//span')
+        type = element.find('.//b')
 
         if type is None:
             continue
@@ -30,7 +30,7 @@ def parse_entry(context, entry):
         if type == 'Country:':
             nationality = entity.create_nationality()
             nationality.country = element.find('a').text
-        elif type == 'Birth Date:':
+        elif type == 'Date of Birth:':
             value = element[0].tail.strip()
             month, day, year = value.split('-', 2)
             birth_date = entity.create_birth_date()
@@ -52,5 +52,5 @@ def parse_entry(context, entry):
 
 def parse(context, data):
     res = context.http.rehash(data)
-    for member in res.html.findall('.//table[@id="list_table"]//td//a'):
+    for member in res.html.findall('.//div[@class="list-group"]//div[@class="col-lg"]//a'):
         parse_entry(context, member)
